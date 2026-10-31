@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OfficeFlow - Office Task & Maintenance Management System</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f5f3ff',
+              100: '#ede9fe',
+              200: '#ddd6fe',
+              300: '#c4b5fd',
+              400: '#a78bfa',
+              500: '#8b5cf6',
+              600: '#7c3aed',
+              700: '#6d28d9',
+              800: '#5b21b6',
+              900: '#4c1d95',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 antialiased flex flex-col">
+
+  <!-- Top Navigation Bar -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-purple-100 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-700 via-brand-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-purple-500/25">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+        </div>
+        <div>
+          <span class="text-xl font-black bg-gradient-to-r from-purple-900 via-brand-600 to-indigo-600 bg-clip-text text-transparent">OfficeFlow</span>
+          <span class="hidden sm:inline-block text-xs text-slate-400 font-medium ml-2 border-l border-slate-200 pl-2">Office Task &amp; Maintenance Management System</span>
+        </div>
+      </div>
+
+      <!-- Center Backend Status Badge -->
+      <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100/80 border border-slate-200">
+        <span id="backend-status-indicator" class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+        <span id="backend-status-text" class="text-xs font-semibold text-slate-700">Checking SSMS Server...</span>
+      </div>
+
+      <!-- Right User Controls & Switch Role -->
+      <div class="flex items-center gap-3">
+        <!-- Quick Role Switch Toggle -->
+        <div class="flex items-center bg-purple-50 p-1 rounded-xl border border-purple-200">
+          <button onclick="switchUserRole('TEAM_LEAD')" title="Act as Team Lead" class="px-2.5 py-1 text-xs font-bold rounded-lg transition-all text-purple-900 hover:bg-white hover:shadow-xs">
+            👑 Lead
+          </button>
+          <button onclick="switchUserRole('TEAM_MEMBER')" title="Act as Technician / Team Member" class="px-2.5 py-1 text-xs font-bold rounded-lg transition-all text-slate-600 hover:bg-white hover:shadow-xs">
+            🛠️ Member
+          </button>
+        </div>
+
+        <!-- Auth Demo Modal Trigger -->
+        <button onclick="openAuthModal()" class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl border border-purple-300 text-purple-700 hover:bg-purple-50 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+          Sign In Demo
+        </button>
+
+        <!-- Current User Profile Card -->
+        <div class="flex items-center gap-2.5 pl-2 border-l border-slate-200">
+          <img id="user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" alt="Avatar" class="w-9 h-9 rounded-full object-cover border-2 border-purple-300 shadow-sm">
+          <div class="hidden lg:block text-left">
+            <div class="flex items-center gap-1.5">
+              <span id="user-display-name" class="text-xs font-bold text-slate-800">Alex Rivera</span>
+              <span id="user-role-badge" class="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-purple-100 text-purple-700">Team Lead</span>
+            </div>
+            <div id="user-display-email" class="text-[11px] text-slate-400">lead@officeflow.com</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Main Body Layout (Sidebar + Content Canvas) -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 flex flex-col md:flex-row gap-6">
+
+    <!-- Left Modern Sidebar Navigation -->
+    <aside class="w-full md:w-64 flex-shrink-0">
+      <div class="glass-panel p-3 rounded-2xl sticky top-24 shadow-sm space-y-1">
+        
+        <div class="px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-purple-900/50">Core Navigation</div>
+        
+        <button onclick="switchTab('dashboard')" data-tab="dashboard" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-purple-100 text-purple-900 font-semibold transition-all">
+          <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          <span>Dashboard</span>
+        </button>
+
+        <button onclick="switchTab('notes')" data-tab="notes" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:text-purple-700 hover:bg-purple-50 transition-all font-medium">
+          <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          <span>1. Daily Notepad</span>
+        </button>
+
+        <button onclick="switchTab('repos')" data-tab="repos" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:text-purple-700 hover:bg-purple-50 transition-all font-medium">
+          <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+          <span>2. Project &amp; Repos</span>
+        </button>
+
+        <button onclick="switchTab('streaks')" data-tab="streaks" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:text-purple-700 hover:bg-purple-50 transition-all font-medium">
+          <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
+          <span>3. Daily Streaks</span>
+        </button>
+
+        <button onclick="switchTab('reports')" data-tab="reports" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:text-purple-700 hover:bg-purple-50 transition-all font-medium">
+          <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span>4. Monthly Report</span>
+        </button>
+
+        <button onclick="switchTab('ideas')" data-tab="ideas" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:text-purple-700 hover:bg-purple-50 transition-all font-medium">
+          <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+          <span>5. Old vs New Ideas</span>
+        </button>
+
+        <button onclick="switchTab('performance')" data-tab="performance" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:text-purple-700 hover:bg-purple-50 transition-all font-medium">
+          <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          <span>6. Performance</span>
+        </button>
+
+        <button onclick="switchTab('tasksheets')" data-tab="tasksheets" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:text-purple-700 hover:bg-purple-50 transition-all font-medium">
+          <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          <span>7. Team Excel Sheet</span>
+        </button>
+
+        <button onclick="switchTab('emails')" data-tab="emails" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:text-purple-700 hover:bg-purple-50 transition-all font-medium">
+          <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          <span>8. Org Email Dispatch</span>
+        </button>
+
+        <!-- Organization Email Access Pill in Sidebar -->
+        <div class="mt-4 pt-3 border-t border-purple-100 px-3">
+          <div class="text-[11px] text-slate-400">Granted Corporate Email:</div>
+          <div id="user-org-email-display" class="text-xs font-mono font-bold text-purple-700 truncate">
+            alex.rivera@corp.officeflow.com
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- Right Dynamic Content Canvas -->
+    <main class="flex-1 min-w-0">
+
+      <!-- ================================================================== -->
+      <!-- TAB 0: DASHBOARD OVERVIEW -->
+      <!-- ================================================================== -->
+      <section id="tab-dashboard" class="tab-content space-y-6">
+        
+        <!-- Welcome Banner -->
+        <div class="glass-purple p-6 sm:p-8 rounded-3xl relative overflow-hidden shadow-sm">
+          <div class="max-w-2xl relative z-10">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-700 bg-white/70 px-3 py-1 rounded-full">
+              Office Operations Telemetry 2026 &bull; SSMS Connected
+            </span>
+            <h1 class="text-2xl sm:text-3xl font-black text-purple-950 mt-3 leading-tight">
+              Facility Task &amp; Maintenance Command Center
+            </h1>
+            <p class="text-slate-600 text-sm mt-2 leading-relaxed">
+              Real-time collaboration across facility maintenance, daily standup streaks, Word-like monthly report compiling, Excel task distribution, and organization email broadcasting.
+            </p>
+          </div>
+          <div class="hidden sm:block absolute right-6 bottom-4 opacity-15">
+            <svg class="w-48 h-48 text-purple-800" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+        </div>
+
+        <!-- 8 Metric Cards Grid -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="glass-panel p-4 rounded-2xl">
+            <span class="text-xs font-semibold text-slate-500">Daily Notes</span>
+            <div id="dash-stat-notes" class="text-2xl font-black text-purple-900 mt-1">0</div>
+            <span class="text-[11px] text-purple-600">Active in notepad</span>
+          </div>
+
+          <div class="glass-panel p-4 rounded-2xl">
+            <span class="text-xs font-semibold text-slate-500">Project Cards</span>
+            <div id="dash-stat-projects" class="text-2xl font-black text-indigo-900 mt-1">0</div>
+            <span class="text-[11px] text-indigo-600">Tracked repositories</span>
+          </div>
+
+          <div class="glass-panel p-4 rounded-2xl bg-amber-50/50 border border-amber-200/50">
+            <span class="text-xs font-semibold text-amber-700">Daily Streak</span>
+            <div id="dash-stat-streak" class="text-2xl font-black text-amber-900 mt-1">18 Days 🔥</div>
+            <span class="text-[11px] text-amber-600">Consecutive standup</span>
+          </div>
+
+          <div class="glass-panel p-4 rounded-2xl">
+            <span class="text-xs font-semibold text-slate-500">Monthly Reports</span>
+            <div id="dash-stat-reports" class="text-2xl font-black text-purple-900 mt-1">0</div>
+            <span class="text-[11px] text-purple-600">Drafted documents</span>
+          </div>
+
+          <div class="glass-panel p-4 rounded-2xl">
+            <span class="text-xs font-semibold text-slate-500">Old vs New Ideas</span>
+            <div id="dash-stat-ideas" class="text-2xl font-black text-purple-900 mt-1">0</div>
+            <span class="text-[11px] text-purple-600">Proposals submitted</span>
+          </div>
+
+          <div class="glass-panel p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200/50">
+            <span class="text-xs font-semibold text-emerald-700">Team Performance</span>
+            <div id="dash-stat-performance" class="text-2xl font-black text-emerald-900 mt-1">93.5%</div>
+            <span class="text-[11px] text-emerald-600">Average SLA score</span>
+          </div>
+
+          <div class="glass-panel p-4 rounded-2xl">
+            <span class="text-xs font-semibold text-slate-500">Active Excel Sheets</span>
+            <div id="dash-stat-tasksheets" class="text-2xl font-black text-purple-900 mt-1">0</div>
+            <span class="text-[11px] text-purple-600">Distributed to team</span>
+          </div>
+
+          <div class="glass-panel p-4 rounded-2xl">
+            <span class="text-xs font-semibold text-slate-500">Org Emails Sent</span>
+            <div id="dash-stat-emails" class="text-2xl font-black text-rose-900 mt-1">0</div>
+            <span class="text-[11px] text-rose-600">Corporate dispatches</span>
+          </div>
+        </div>
+
+        <!-- Quick Module Launchpad -->
+        <div class="glass-panel p-6 rounded-3xl">
+          <h2 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+            <span>⚡ Quick Workflow Shortcuts</span>
+          </h2>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <button onclick="switchTab('notes'); openNoteModal();" class="p-4 rounded-2xl bg-purple-50 hover:bg-purple-100 transition text-left group">
+              <span class="text-xl">📝</span>
+              <h4 class="font-bold text-xs text-purple-900 mt-2">Write Daily Note</h4>
+              <p class="text-[11px] text-purple-600">Auto-saved notepad</p>
+            </button>
+            <button onclick="switchTab('streaks')" class="p-4 rounded-2xl bg-amber-50 hover:bg-amber-100 transition text-left group">
+              <span class="text-xl">🔥</span>
+              <h4 class="font-bold text-xs text-amber-900 mt-2">Check In Standup</h4>
+              <p class="text-[11px] text-amber-600">Log daily streak</p>
+            </button>
+            <button onclick="switchTab('tasksheets')" class="p-4 rounded-2xl bg-teal-50 hover:bg-teal-100 transition text-left group">
+              <span class="text-xl">📊</span>
+              <h4 class="font-bold text-xs text-teal-900 mt-2">Update Excel Sheet</h4>
+              <p class="text-[11px] text-teal-600">Update work status</p>
+            </button>
+            <button onclick="switchTab('emails')" class="p-4 rounded-2xl bg-rose-50 hover:bg-rose-100 transition text-left group">
+              <span class="text-xl">✉️</span>
+              <h4 class="font-bold text-xs text-rose-900 mt-2">Send Org Email</h4>
+              <p class="text-[11px] text-rose-600">Leave / announcements</p>
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- TAB 1: DAILY NOTES (NOTEPAD) -->
+      <!-- ================================================================== -->
+      <section id="tab-notes" class="tab-content hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-black text-slate-800 flex items-center gap-2">
+              <span>📝 Daily Notes in Notepad</span>
+            </h2>
+            <p class="text-xs text-slate-500">Record, pin, and organize daily maintenance logs and checklists.</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <input type="text" id="notes-search-input" oninput="loadNotes()" placeholder="Search notepad..." 
+                   class="px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500 bg-white shadow-xs w-48 sm:w-60" />
+            <button onclick="openNoteModal()" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition shadow-sm flex items-center gap-1.5">
+              <span>+ Write New Note</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="notes-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Dynamically populated -->
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- TAB 2: PROJECT & REPOSITORY CARDS -->
+      <!-- ================================================================== -->
+      <section id="tab-repos" class="tab-content hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-black text-slate-800 flex items-center gap-2">
+              <span>📂 Project &amp; Repository Cards</span>
+            </h2>
+            <p class="text-xs text-slate-500">Centralized repository hub with GitHub links, tech stack tags, and live demos.</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <select id="project-filter-category" onchange="loadProjects()" class="px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white">
+              <option value="">All Categories</option>
+              <option value="IT Support">IT Support</option>
+              <option value="Facility">Facility</option>
+              <option value="Security">Security</option>
+              <option value="Operations">Operations</option>
+            </select>
+            <button onclick="openProjectModal()" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition shadow-sm">
+              + Add Project Repo
+            </button>
+          </div>
+        </div>
+
+        <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Dynamically populated -->
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- TAB 3: DAILY STREAKS MANAGEMENT -->
+      <!-- ================================================================== -->
+      <section id="tab-streaks" class="tab-content hidden space-y-6">
+        <div class="glass-purple p-6 sm:p-8 rounded-3xl border border-purple-200 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div class="flex items-center gap-5">
+            <div class="w-20 h-20 rounded-3xl bg-amber-500 text-white flex items-center justify-center text-4xl shadow-xl shadow-amber-500/30 animate-pulse-subtle">
+              🔥
+            </div>
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-amber-700 bg-amber-100 px-3 py-0.5 rounded-full">
+                Active Standup Streak
+              </span>
+              <h2 id="streak-big-count" class="text-3xl sm:text-4xl font-black text-slate-900 mt-1">18 Days</h2>
+              <p id="streak-badge-title" class="text-xs font-bold text-purple-700 mt-0.5">Gold Fortress Guardian (14+ Days)</p>
+            </div>
+          </div>
+          <div class="text-center md:text-right">
+            <span class="text-xs text-slate-500 block">Next Milestone</span>
+            <span id="streak-days-until" class="text-sm font-extrabold text-purple-900 block mt-0.5">3 days to next badge</span>
+            <span class="text-xs text-slate-400">Total days recorded: <b id="streak-total-logged">31</b></span>
+          </div>
+        </div>
+
+        <div class="glass-panel p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <h3 class="font-bold text-base text-slate-800 mb-3 flex items-center gap-2">
+            <span>📅 Log Today's Maintenance Standup &amp; Maintain Streak</span>
+          </h3>
+          <form id="streak-form" onsubmit="handleRecordDailyStreak(event)" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div class="md:col-span-2">
+                <label class="block text-xs font-semibold text-slate-600 mb-1">What did you maintain / accomplish today?</label>
+                <input type="text" id="streak-input-summary" required placeholder="e.g. Calibrated server room coolant sensors and logged pressure telemetry" 
+                       class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Hours Logged</label>
+                <input type="number" id="streak-input-hours" step="0.5" value="8.0" min="0.5" max="24" 
+                       class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Notes / Blockers Encountered (Optional)</label>
+              <input type="text" id="streak-input-notes" placeholder="e.g. All checks green; spare fuse ordered for Zone 4" 
+                     class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500" />
+            </div>
+            <button type="submit" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition shadow-sm">
+              Log Standup &amp; Extend Streak 🔥
+            </button>
+          </form>
+        </div>
+
+        <div class="glass-panel p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <h3 class="font-bold text-sm text-slate-800 mb-3">Recent Streak Standup Activity</h3>
+          <div id="streak-logs-list" class="space-y-2">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- TAB 4: MONTHLY REPORT (WORD-LIKE DOCUMENT BUILDER) -->
+      <!-- ================================================================== -->
+      <section id="tab-reports" class="tab-content hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-black text-slate-800 flex items-center gap-2">
+              <span>📄 Monthly Report Document Creator</span>
+            </h2>
+            <p class="text-xs text-slate-500">Draft, format, and generate executive reports using Word-like document tools.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="handlePrintDocument()" class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center gap-1.5">
+              <span>🖨️ Print / PDF</span>
+            </button>
+            <button onclick="handleSaveReportDocument()" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition shadow-sm">
+              💾 Save Report
+            </button>
+          </div>
+        </div>
+
+        <div class="glass-panel p-5 rounded-2xl border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Document Title</label>
+            <input type="text" id="report-title-input" value="Monthly Facility Operations & Maintenance Report" 
+                   class="w-full px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 focus:border-purple-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Reporting Month</label>
+            <input type="text" id="report-month-input" value="October 2026" 
+                   class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:border-purple-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Department</label>
+            <input type="text" id="report-dept-input" value="Facility Operations" 
+                   class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:border-purple-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Tasks Completed</label>
+            <input type="number" id="report-tasks-count" value="142" 
+                   class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Budget Spent ($)</label>
+            <input type="number" id="report-budget-spent" value="18450" 
+                   class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Executive Summary Highlights</label>
+            <input type="text" id="report-summary-input" value="Maintained 99.94% facility uptime and closed 142 tickets ahead of target SLA." 
+                   class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200" />
+          </div>
+        </div>
+
+        <div class="glass-panel p-2.5 rounded-2xl border border-slate-200 flex flex-wrap items-center gap-1.5 bg-slate-100/60">
+          <button onclick="formatDoc('bold')" title="Bold" class="p-1.5 font-bold hover:bg-white rounded-lg text-xs w-8 h-8 border border-transparent hover:border-slate-200">B</button>
+          <button onclick="formatDoc('italic')" title="Italic" class="p-1.5 italic font-serif hover:bg-white rounded-lg text-xs w-8 h-8 border border-transparent hover:border-slate-200">I</button>
+          <button onclick="formatDoc('underline')" title="Underline" class="p-1.5 underline hover:bg-white rounded-lg text-xs w-8 h-8 border border-transparent hover:border-slate-200">U</button>
+          <span class="w-px h-5 bg-slate-300 mx-1"></span>
+          <button onclick="formatDoc('formatBlock', 'h1')" class="px-2 py-1 hover:bg-white rounded-lg text-xs font-bold border border-transparent hover:border-slate-200">H1</button>
+          <button onclick="formatDoc('formatBlock', 'h2')" class="px-2 py-1 hover:bg-white rounded-lg text-xs font-bold border border-transparent hover:border-slate-200">H2</button>
+          <button onclick="formatDoc('formatBlock', 'p')" class="px-2 py-1 hover:bg-white rounded-lg text-xs border border-transparent hover:border-slate-200">Normal</button>
+          <span class="w-px h-5 bg-slate-300 mx-1"></span>
+          <button onclick="formatDoc('insertUnorderedList')" title="Bullet List" class="p-1.5 hover:bg-white rounded-lg text-xs w-8 h-8 border border-transparent hover:border-slate-200">&bull; List</button>
+          <button onclick="formatDoc('insertOrderedList')" title="Numbered List" class="p-1.5 hover:bg-white rounded-lg text-xs w-8 h-8 border border-transparent hover:border-slate-200">1. List</button>
+          <button onclick="insertTableIntoDoc()" title="Insert Table" class="px-2.5 py-1 hover:bg-white rounded-lg text-xs font-medium border border-transparent hover:border-slate-200 flex items-center gap-1">
+            <span>📊 Insert Table</span>
+          </button>
+          <button onclick="formatDoc('insertHorizontalRule')" title="Divider Line" class="px-2 py-1 hover:bg-white rounded-lg text-xs border border-transparent hover:border-slate-200">&minus;&minus; Line</button>
+        </div>
+
+        <div id="word-editor" contenteditable="true" class="word-editor-sheet prose max-w-none">
+          <h2>1. Executive Summary</h2>
+          <p>The office infrastructure maintained an outstanding <b>99.94% facility uptime</b> across October 2026. A total of 142 routine and preventive maintenance tickets were closed ahead of target SLA.</p>
+          
+          <h2>2. Key Systems Telemetry &amp; Performance</h2>
+          <ul>
+            <li><b>HVAC Optimization:</b> Power usage decreased by 12.4% following automated cycle tuning.</li>
+            <li><b>IT Network &amp; Server Room:</b> Backup generators successfully triggered 2 test cutovers without brownouts.</li>
+            <li><b>Safety Audits:</b> Fire safety &amp; suppression compliance achieved 100% score on municipal inspection.</li>
+          </ul>
+
+          <h2>3. Budget Allocation &amp; Cost Efficiency</h2>
+          <p>Actual maintenance spend was $18,450 vs allocated budget of $22,000, achieving a 16.1% cost optimization.</p>
+        </div>
+
+        <div class="glass-panel p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <h3 class="font-bold text-sm text-slate-800 mb-3">Saved Reports Archive</h3>
+          <div id="reports-history-list" class="space-y-2">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- TAB 5: PROJECT IDEA COMPARISON (OLD IDEA VS NEW SUGGESTION) -->
+      <!-- ================================================================== -->
+      <section id="tab-ideas" class="tab-content hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-black text-slate-800 flex items-center gap-2">
+              <span>💡 Project Ideas: Old Workflow vs New Suggestion</span>
+            </h2>
+            <p class="text-xs text-slate-500">Side-by-side comparison writing fields: document legacy flaws and propose modern solutions.</p>
+          </div>
+          <input type="text" id="ideas-search-input" oninput="loadIdeas()" placeholder="Search proposals..." 
+                 class="px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-white shadow-xs w-48 sm:w-64" />
+        </div>
+
+        <div class="glass-panel p-6 rounded-3xl border border-purple-100 shadow-sm">
+          <h3 class="font-bold text-base text-purple-950 mb-4 flex items-center gap-2">
+            <span>✍️ Propose Modernization for Project</span>
+          </h3>
+
+          <form id="idea-proposal-form" onsubmit="handleSaveIdeaProposal(event)" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Select Project from List</label>
+                <select id="idea-project-dropdown" class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:border-purple-500">
+                  <!-- Loaded dynamically -->
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Estimated Impact</label>
+                <select id="idea-impact-select" class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-white">
+                  <option value="HIGH">High Impact</option>
+                  <option value="CRITICAL">Critical Priority</option>
+                  <option value="MEDIUM">Medium Impact</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-4 rounded-2xl bg-rose-50/60 border border-rose-200">
+                <label class="block text-xs font-extrabold text-rose-900 mb-1.5 flex items-center gap-1.5 uppercase tracking-wide">
+                  <span>⚠️ 1. Old Project Idea / Current Bottleneck</span>
+                </label>
+                <textarea id="idea-old-writing-field" required rows="5" 
+                          placeholder="Describe how this task was previously done, manual steps, inefficiencies, bottlenecks, or flaws..." 
+                          class="w-full p-3 text-xs rounded-xl border border-rose-200 bg-white focus:outline-none focus:border-rose-400 leading-relaxed"></textarea>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-purple-50/60 border border-purple-200">
+                <label class="block text-xs font-extrabold text-purple-900 mb-1.5 flex items-center gap-1.5 uppercase tracking-wide">
+                  <span>💡 2. New Suggestion Idea &amp; Innovation</span>
+                </label>
+                <textarea id="idea-new-writing-field" required rows="5" 
+                          placeholder="Describe the modern proposed solution, automated workflow, sensor integration, or architectural enhancement..." 
+                          class="w-full p-3 text-xs rounded-xl border border-purple-200 bg-white focus:outline-none focus:border-purple-500 leading-relaxed"></textarea>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Key Quantifiable Benefits</label>
+              <input type="text" id="idea-benefits-field" placeholder="e.g. Cuts technician round times by 70%, gives automated 24/7 telemetry alerts" 
+                     class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500" />
+            </div>
+
+            <button type="submit" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition shadow-sm">
+              Submit Old vs New Idea Comparison &rarr;
+            </button>
+          </form>
+        </div>
+
+        <div id="ideas-proposals-container" class="space-y-4">
+          <!-- Dynamically populated -->
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- TAB 6: MONTHLY PERFORMANCE EVALUATION -->
+      <!-- ================================================================== -->
+      <section id="tab-performance" class="tab-content hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-black text-slate-800 flex items-center gap-2">
+              <span>🏆 Monthly Performance Evaluation</span>
+            </h2>
+            <p class="text-xs text-slate-500">Evaluates technician SLA, uptime reliability, task completion speed, and teamwork.</p>
+          </div>
+          <button onclick="openEvaluationModal()" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition shadow-sm">
+            + Evaluate Team Member
+          </button>
+        </div>
+
+        <div id="performance-eval-list" class="space-y-4">
+          <!-- Dynamically populated -->
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- TAB 7: TEAM EXCEL SHEET TASK DISTRIBUTOR & LIVE WORK UPDATER -->
+      <!-- ================================================================== -->
+      <section id="tab-tasksheets" class="tab-content hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-black text-slate-800 flex items-center gap-2">
+              <span>📑 Team Lead Excel Sheet &amp; Member Work Grid</span>
+            </h2>
+            <p class="text-xs text-slate-500">Team Lead creates the excel sheet and distributes to team; members update their assigned work rows in real-time.</p>
+          </div>
+          <button onclick="openCreateSheetModal()" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition shadow-sm">
+            + Create Master Excel Sheet
+          </button>
+        </div>
+
+        <div id="tasksheets-container" class="space-y-6">
+          <!-- Dynamically populated -->
+        </div>
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- TAB 8: ORGANIZATION EMAIL DISPATCHER & ACCESS GRANT -->
+      <!-- ================================================================== -->
+      <section id="tab-emails" class="tab-content hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-black text-slate-800 flex items-center gap-2">
+              <span>✉️ Organization Email Dispatcher &amp; Access Grant</span>
+            </h2>
+            <p class="text-xs text-slate-500">Team Lead grants corporate email access to staff to send official leaves and broadcasts.</p>
+          </div>
+          <button onclick="document.getElementById('grant-email-modal').classList.remove('hidden')" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition shadow-sm">
+            👑 Lead: Grant Corporate Email
+          </button>
+        </div>
+
+        <div class="glass-panel p-6 rounded-3xl border border-purple-100 shadow-sm">
+          <h3 class="font-bold text-base text-slate-800 mb-3 flex items-center gap-2">
+            <span>📤 Compose Official Corporate Organization Email</span>
+          </h3>
+          <form id="email-composer-form" onsubmit="handleSendOrganizationEmail(event)" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">From (Granted Corporate Email)</label>
+                <input type="text" id="email-composer-from" disabled class="w-full px-3 py-2 text-xs font-mono font-bold text-purple-700 bg-purple-50 rounded-xl border border-purple-200" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Email Category</label>
+                <select id="email-type-select" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white">
+                  <option value="LEAVE_REQUEST">Employee Leave Request</option>
+                  <option value="MAINTENANCE_ALERT">Maintenance Downtime Alert</option>
+                  <option value="DAILY_STATUS">Daily Operations Progress</option>
+                  <option value="GENERAL_BROADCAST">Organization Broadcast</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Recipient Group</label>
+                <select id="email-target-select" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white">
+                  <option value="ALL_ORGANIZATION">All Organization Staff</option>
+                  <option value="MAINTENANCE_TEAM">Maintenance Team</option>
+                  <option value="TEAM_LEAD">Team Lead &amp; HR</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1">Target Recipient Address(es)</label>
+              <input type="text" id="email-recipients-input" required value="all-staff@corp.officeflow.com" 
+                     class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1">Subject</label>
+              <input type="text" id="email-subject-input" required placeholder="e.g. [LEAVE NOTICE] 3 Days Annual Leave Request - Sarah Connor" 
+                     class="w-full px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1">Official Message Body</label>
+              <textarea id="email-body-input" required rows="4" placeholder="Dear Team, please be advised..." 
+                        class="w-full p-3 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500 leading-relaxed"></textarea>
+            </div>
+
+            <button type="submit" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition shadow-sm flex items-center gap-1.5">
+              <span>Send Official Email &rarr;</span>
+            </button>
+          </form>
+        </div>
+
+        <div class="glass-panel p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <h3 class="font-bold text-sm text-slate-800 mb-3 flex items-center gap-2">
+            <span>🔐 Corporate Email Access Permissions</span>
+          </h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-50 text-slate-500 border-b border-slate-200">
+                  <th class="p-3">Team Member</th>
+                  <th class="p-3">Granted Org Email</th>
+                  <th class="p-3">Dispatch Privileges</th>
+                  <th class="p-3">Status</th>
+                  <th class="p-3 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody id="email-grants-table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="glass-panel p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <h3 class="font-bold text-sm text-slate-800 mb-3">Sent Corporate Communications Log</h3>
+          <div id="email-logs-list" class="space-y-3">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <div id="toast-container"></div>
+
+  <!-- MODALS -->
+  <div id="note-modal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-purple-100 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="font-bold text-slate-800 text-base">Write Daily Note</h3>
+        <button onclick="closeNoteModal()" class="text-slate-400 hover:text-slate-600">&times;</button>
+      </div>
+      <form onsubmit="handleSaveNote(event)" class="space-y-3">
+        <input type="hidden" id="note-modal-id">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Title</label>
+          <input type="text" id="note-modal-title" required placeholder="Note Title..." class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-purple-500" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Category</label>
+            <select id="note-modal-category" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white">
+              <option value="General">General</option>
+              <option value="Maintenance">Maintenance</option>
+              <option value="Daily Standup">Daily Standup</option>
+              <option value="Urgent">Urgent</option>
+              <option value="Checklist">Checklist</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Accent Color</label>
+            <select id="note-modal-color" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white">
+              <option value="#8b5cf6">Purple Accent</option>
+              <option value="#ec4899">Pink Accent</option>
+              <option value="#3b82f6">Blue Accent</option>
+              <option value="#10b981">Green Accent</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Note Content</label>
+          <textarea id="note-modal-content" required rows="5" placeholder="Write your daily notes, observations, task checklist..." class="w-full p-3 text-xs rounded-xl border border-slate-200 focus:border-purple-500 leading-relaxed"></textarea>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="checkbox" id="note-modal-pinned" class="rounded text-purple-600 focus:ring-purple-500" />
+          <label for="note-modal-pinned" class="text-xs text-slate-600">Pin to top of notepad</label>
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" onclick="closeNoteModal()" class="px-4 py-2 text-xs text-slate-600 hover:bg-slate-100 rounded-xl">Cancel</button>
+          <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-xl shadow-sm">Save Note</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="project-modal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-purple-100 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="font-bold text-slate-800 text-base">Add Project &amp; Repository Card</h3>
+        <button onclick="closeProjectModal()" class="text-slate-400 hover:text-slate-600">&times;</button>
+      </div>
+      <form id="project-form" onsubmit="handleSaveProject(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Project Name</label>
+          <input type="text" id="proj-name" required placeholder="e.g. IoT-Smart-HVAC-Monitor" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Description</label>
+          <input type="text" id="proj-desc" placeholder="Brief system purpose..." class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">GitHub / Git Repository URL</label>
+          <input type="url" id="proj-repo-url" required placeholder="https://github.com/officeflow/repo-name" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Live Demo URL</label>
+            <input type="url" id="proj-demo-url" placeholder="https://demo.officeflow.com" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Documentation URL</label>
+            <input type="url" id="proj-doc-url" placeholder="https://docs.officeflow.com" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200" />
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Tech Stack</label>
+            <input type="text" id="proj-tech" value="Java 17, Spring Boot, SSMS" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Category</label>
+            <select id="proj-category" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white">
+              <option value="IT Support">IT Support</option>
+              <option value="Facility">Facility</option>
+              <option value="Security">Security</option>
+              <option value="Operations">Operations</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Status</label>
+            <select id="proj-status" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white">
+              <option value="ACTIVE">ACTIVE</option>
+              <option value="UNDER_REVIEW">UNDER_REVIEW</option>
+              <option value="COMPLETED">COMPLETED</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" onclick="closeProjectModal()" class="px-4 py-2 text-xs text-slate-600 hover:bg-slate-100 rounded-xl">Cancel</button>
+          <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-xl shadow-sm">Save Project</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="eval-modal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-purple-100 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="font-bold text-slate-800 text-base">Monthly Performance Evaluation</h3>
+        <button onclick="closeEvaluationModal()" class="text-slate-400 hover:text-slate-600">&times;</button>
+      </div>
+      <form id="eval-form" onsubmit="handleSaveEvaluation(event)" class="space-y-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Team Member</label>
+            <select id="eval-user-select" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white">
+              <option value="2">Sarah Connor (HVAC Specialist)</option>
+              <option value="3">David Chen (Network Engineer)</option>
+              <option value="4">Maya Patel (Safety Associate)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Evaluation Month</label>
+            <select id="eval-month-select" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white">
+              <option value="October 2026">October 2026</option>
+              <option value="November 2026">November 2026</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">SLA (35%)</label>
+            <input type="number" id="eval-sla" min="0" max="100" value="95" class="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-200 text-center" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Uptime (25%)</label>
+            <input type="number" id="eval-uptime" min="0" max="100" value="98" class="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-200 text-center" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Speed (25%)</label>
+            <input type="number" id="eval-completion" min="0" max="100" value="90" class="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-200 text-center" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Team (15%)</label>
+            <input type="number" id="eval-teamwork" min="0" max="100" value="92" class="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-200 text-center" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Core Strengths</label>
+          <input type="text" id="eval-strengths" required placeholder="Key positive contributions..." class="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Areas of Improvement</label>
+          <input type="text" id="eval-improvement" placeholder="Guidance for growth..." class="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Lead Feedback / Remarks</label>
+          <textarea id="eval-comments" rows="3" placeholder="Lead comments..." class="w-full p-2.5 text-xs rounded-xl border border-slate-200"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" onclick="closeEvaluationModal()" class="px-4 py-2 text-xs text-slate-600 hover:bg-slate-100 rounded-xl">Cancel</button>
+          <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-xl shadow-sm">Save Evaluation</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="tasksheet-modal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-purple-100 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="font-bold text-slate-800 text-base">Create Master Team Excel Sheet</h3>
+        <button onclick="closeCreateSheetModal()" class="text-slate-400 hover:text-slate-600">&times;</button>
+      </div>
+      <form id="tasksheet-form" onsubmit="handleCreateTaskSheet(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Sheet Title</label>
+          <input type="text" id="sheet-title" required placeholder="e.g. Weekly Facility Preventive Maintenance Grid" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Target Due Date</label>
+          <input type="date" id="sheet-target-date" required value="2026-11-05" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Description / Instructions</label>
+          <input type="text" id="sheet-desc" placeholder="Instructions for the team..." class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200" />
+        </div>
+
+        <div class="border-t border-slate-100 pt-3">
+          <span class="text-xs font-bold text-purple-900 block mb-2">Initial Tasks (Excel Rows):</span>
+          <div class="space-y-2">
+            <div class="grid grid-cols-2 gap-2">
+              <input type="text" id="sheet-row1-name" placeholder="Task 1: Sensor Inspection" class="px-2.5 py-1.5 text-xs rounded-lg border border-slate-200" />
+              <input type="text" id="sheet-row1-member" placeholder="Assignee: Sarah Connor" class="px-2.5 py-1.5 text-xs rounded-lg border border-slate-200" />
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <input type="text" id="sheet-row2-name" placeholder="Task 2: Generator Test" class="px-2.5 py-1.5 text-xs rounded-lg border border-slate-200" />
+              <input type="text" id="sheet-row2-member" placeholder="Assignee: David Chen" class="px-2.5 py-1.5 text-xs rounded-lg border border-slate-200" />
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" onclick="closeCreateSheetModal()" class="px-4 py-2 text-xs text-slate-600 hover:bg-slate-100 rounded-xl">Cancel</button>
+          <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-xl shadow-sm">Distribute to Team</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="grant-email-modal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-purple-100 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="font-bold text-slate-800 text-base">Grant Corporate Email Access</h3>
+        <button onclick="document.getElementById('grant-email-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600">&times;</button>
+      </div>
+      <form onsubmit="handleGrantEmailModal(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Select Team Member</label>
+          <select id="grant-user-select" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white">
+            <option value="4">Maya Patel (Safety Operations)</option>
+            <option value="2">Sarah Connor (HVAC Specialist)</option>
+            <option value="3">David Chen (Network Engineer)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Corporate Organization Email to Grant</label>
+          <input type="email" id="grant-org-email" required value="maya.patel@corp.officeflow.com" 
+                 class="w-full px-3 py-2 text-xs font-mono rounded-xl border border-slate-200 focus:border-purple-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Authorization Notes</label>
+          <input type="text" id="grant-notes" value="Approved official broadcast & leave dispatch access by Team Lead" 
+                 class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200" />
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" onclick="document.getElementById('grant-email-modal').classList.add('hidden')" class="px-4 py-2 text-xs text-slate-600 hover:bg-slate-100 rounded-xl">Cancel</button>
+          <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-xl shadow-sm">Authorize Access</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="auth-modal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-purple-100 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="font-bold text-slate-800 text-base">OfficeFlow Account Demo</h3>
+        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-slate-600">&times;</button>
+      </div>
+
+      <div class="space-y-2">
+        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">1-Click Quick Demo Sign-In:</span>
+        <button onclick="quickLogin('lead@officeflow.com', 'admin123', 'TEAM_LEAD')" class="w-full p-2.5 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 text-left flex items-center justify-between transition">
+          <div>
+            <div class="text-xs font-bold text-purple-950">Alex Rivera (Team Lead)</div>
+            <div class="text-[11px] text-purple-600">lead@officeflow.com</div>
+          </div>
+          <span class="text-xs font-bold text-purple-700">&rarr;</span>
+        </button>
+        <button onclick="quickLogin('sarah@officeflow.com', 'user123', 'TEAM_MEMBER')" class="w-full p-2.5 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-left flex items-center justify-between transition">
+          <div>
+            <div class="text-xs font-bold text-blue-950">Sarah Connor (HVAC Specialist)</div>
+            <div class="text-[11px] text-blue-600">sarah@officeflow.com</div>
+          </div>
+          <span class="text-xs font-bold text-blue-700">&rarr;</span>
+        </button>
+      </div>
+
+      <div class="relative flex py-2 items-center">
+        <div class="flex-grow border-t border-slate-200"></div>
+        <span class="flex-shrink mx-3 text-xs text-slate-400 font-semibold">Or Custom Login</span>
+        <div class="flex-grow border-t border-slate-200"></div>
+      </div>
+
+      <form onsubmit="handleCustomLogin(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Email</label>
+          <input type="email" id="custom-email" required placeholder="user@officeflow.com" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
+          <input type="password" id="custom-pass" required placeholder="••••••••" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200" />
+        </div>
+        <button type="submit" class="w-full py-2.5 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-xl shadow-sm transition">
+          Sign In
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    function openAuthModal() {
+      document.getElementById('auth-modal').classList.remove('hidden');
+    }
+    function closeAuthModal() {
+      document.getElementById('auth-modal').classList.add('hidden');
+    }
+    function quickLogin(email, pass, role) {
+      closeAuthModal();
+      switchUserRole(role);
+      showToast('Logged In Successfully', `Authenticated as ${email}`);
+    }
+    async function handleCustomLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('custom-email').value;
+      const pass = document.getElementById('custom-pass').value;
+      const res = await OfficeFlowAPI.login(email, pass);
+      closeAuthModal();
+      AppState.currentUser = {
+        id: res.userId,
+        name: res.name,
+        email: res.email,
+        role: res.role,
+        department: res.department,
+        designation: res.designation,
+        organizationEmail: res.organizationEmail,
+        hasOrgEmailAccess: res.hasOrgEmailAccess,
+        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'
+      };
+      updateUserHeaderDisplay();
+      showToast('Welcome back!', `Logged in as ${res.name}`);
+      switchTab('dashboard');
+    }
+  </script>
+</body>
+</html>
